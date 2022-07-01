@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=2]
+
+[sub_resource type="StreamTexture" id=13]
+flags = 4
+
+[sub_resource type="RectangleShape2D" id=12]
+extents = Vector2( 960, 32 )
+
+[node name="Platform" type="StaticBody2D"]
+position = Vector2( 0, 1015 )
+
+[node name="Sprite" type="Sprite" parent="."]
+scale = Vector2( 30, 4 )
+texture = SubResource( 13 )
+centered = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2( 960, 32 )
+shape = SubResource( 12 )
