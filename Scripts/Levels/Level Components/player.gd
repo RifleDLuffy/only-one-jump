@@ -3,6 +3,8 @@ class_name Player
 
 const WALK_ACCELERATION = 20
 const JUMP_SPEED = 1200
+const FRICTION = 10
+const MAX_SPEED = 400
 
 const FALL_MULTIPLIER = 2.5;
 
@@ -34,6 +36,8 @@ func _process(delta):
 	if Input.is_action_just_pressed("jump"):
 		velocity.y = -JUMP_SPEED
 		is_jumping = true
+	# Applying max speed
+	velocity.x = clamp(velocity.x, -MAX_SPEED, MAX_SPEED)
 
 func _physics_process(delta):
 	if dead:
@@ -42,6 +46,11 @@ func _physics_process(delta):
 	# Vertical movement code. Apply gravity.	
 	if is_on_floor() and !is_jumping:
 		velocity.y = 0
+		# Friction when on the floor
+		if velocity.x > 0:
+			velocity.x = clamp(velocity.x, 0, velocity.x-FRICTION)
+		elif velocity.x < 0:
+			velocity.x = clamp(velocity.x, velocity.x+FRICTION, 0)
 	elif velocity.y < 0:
 		is_jumping = false
 		velocity.y += gravity * (FALL_MULTIPLIER - 1) * delta
