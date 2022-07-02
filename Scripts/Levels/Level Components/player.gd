@@ -1,9 +1,12 @@
 extends KinematicBody2D
 class_name Player
 
-const WALK_ACCELERATION = 20
+const WALK_MAX_SPEED = 600
+const WALK_ACCELERATION = 300
+const AIR_ACCELERATION = 75
 const JUMP_SPEED = 1200
-const FRICTION = 10
+const FRICTION = 30
+const FRICTION_AIR = 20
 const MAX_SPEED = 400
 
 const FALL_MULTIPLIER = 2.5;
@@ -29,9 +32,16 @@ func die():
 
 func _process(delta):
 	if Input.is_action_pressed("move_right"):
-		velocity += Vector2(WALK_ACCELERATION, 0)
+		if is_on_floor(): 
+			velocity += Vector2(WALK_ACCELERATION, 0)
+		else:
+			velocity += Vector2(AIR_ACCELERATION, 0)
 	if Input.is_action_pressed("move_left"):
-		velocity -= Vector2(WALK_ACCELERATION, 0)
+		if is_on_floor(): 
+			velocity -= Vector2(WALK_ACCELERATION, 0)
+		else:
+			velocity -= Vector2(AIR_ACCELERATION, 0)
+	
 	# We use just_pressed so that the player can't hold jump infinitely to fly
 	if Input.is_action_just_pressed("jump"):
 		velocity.y = -JUMP_SPEED
@@ -44,13 +54,31 @@ func _physics_process(delta):
 		return
 	
 	# Vertical movement code. Apply gravity.	
+	if !is_on_floor():
+		if velocity.x > 0:
+			if velocity.x - FRICTION < 0:
+				velocity.x = 0
+			else:
+				velocity.x = clamp(velocity.x, 0, velocity.x - FRICTION_AIR)
+		elif velocity.x < 0:
+			if velocity.x - FRICTION > 0:
+				velocity.x = 0
+			else:
+				velocity.x = clamp(velocity.x, velocity.x + FRICTION_AIR, 0)
+			
 	if is_on_floor() and !is_jumping:
 		velocity.y = 0
 		# Friction when on the floor
 		if velocity.x > 0:
-			velocity.x = clamp(velocity.x, 0, velocity.x-FRICTION)
+			if velocity.x - FRICTION < 0:
+				velocity.x = 0
+			else:
+				velocity.x = clamp(velocity.x, 0, velocity.x - FRICTION)
 		elif velocity.x < 0:
-			velocity.x = clamp(velocity.x, velocity.x+FRICTION, 0)
+			if velocity.x - FRICTION > 0:
+				velocity.x = 0
+			else:
+				velocity.x = clamp(velocity.x, velocity.x + FRICTION, 0)
 	elif velocity.y < 0:
 		is_jumping = false
 		velocity.y += gravity * (FALL_MULTIPLIER - 1) * delta
